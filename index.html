@@ -1,40 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="utf-8"/>
-<title>Naviguide AI</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NaviGuide AI</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #0f172a;
+  color: white;
+}
+
+video {
+  width: 90%;
+  max-width: 500px;
+  border-radius: 15px;
+  border: 2px solid #38bdf8;
+}
+
+#output {
+  margin-top: 15px;
+  background: #020617;
+  padding: 10px;
+  border-radius: 10px;
+  min-height: 60px;
+  width: 90%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+button {
+  margin: 10px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  background: #38bdf8;
+  color: black;
+  font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-<h2>📷 NAVIGUIDE AI — Streaming</h2>
-<video id="video" autoplay playsinline width="320"></video>
-<pre id="output"></pre>
+<h2>📷 NAVIGUIDE AI — Cámara en tiempo real</h2>
+
+<video id="video" autoplay playsinline></video>
+<br>
+
+<button id="flipBtn">🔄 Cambiar cámara</button>
+
+<h3>IA dice:</h3>
+<div id="output">Esperando detecciones...</div>
 
 <script>
 const video = document.getElementById("video");
 const output = document.getElementById("output");
 
-navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => {
-    video.srcObject = stream;
-});
+let useFrontCamera = false; // false = trasera, true = frontal
 
-const ws = new WebSocket("wss://xxxxx.ngrok-free.app/stream");
+async function startCamera() {
+    const constraints = {
+        video: {
+            facingMode: useFrontCamera ? "user" : "environment"
+        }
+    };
+
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+}
+
+// Inicia cámara
+startCamera();
+
+// ⚠️⚠️⚠️ CAMBIA SOLO ESTA LÍNEA POR TU NGROK ⚠️⚠️⚠️
+const ws = new WebSocket(
+  "wss://zaida-distinguishing-unhistorically.ngrok-free.dev/stream"
+);
+// Ejemplo:
+// const ws = new WebSocket("wss://zaida-distinguishing-unhistorically.ngrok-free.dev/stream");
+
+ws.onopen = () => {
+    console.log("Conectado al servidor IA");
+    output.textContent = "Conectado a la IA...";
+};
 
 ws.onmessage = (event) => {
     output.textContent = event.data;
 };
 
+ws.onerror = (err) => {
+    console.error("Error WebSocket:", err);
+    output.textContent = "Error de conexión con la IA";
+};
+
+// Enviar frames cada 500 ms
 setInterval(() => {
+    if (video.videoWidth === 0) return;
+
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0);
+
     const imgData = canvas.toDataURL("image/jpeg");
     const base64 = imgData.split(",")[1];
-    ws.send(base64);
-}, 500); // envía frame cada 0.5 segundos
+
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(base64);
+    }
+}, 500);
+
+// Botón para voltear cámara
+document.getElementById("flipBtn").addEventListener("click", async () => {
+    useFrontCamera = !useFrontCamera;
+
+    video.srcObject.getTracks().forEach(t => t.stop());
+    await startCamera();
+});
 </script>
 
 </body>

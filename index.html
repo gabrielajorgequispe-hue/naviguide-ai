@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Naviguide AI</title>
+</head>
+<body>
+
+<h2>📷 NAVIGUIDE AI — Streaming</h2>
+<video id="video" autoplay playsinline width="320"></video>
+<pre id="output"></pre>
+
+<script>
+const video = document.getElementById("video");
+const output = document.getElementById("output");
+
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    video.srcObject = stream;
+});
+
+const ws = new WebSocket("wss://xxxxx.ngrok-free.app/stream");
+
+ws.onmessage = (event) => {
+    output.textContent = event.data;
+};
+
+setInterval(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+    const imgData = canvas.toDataURL("image/jpeg");
+    const base64 = imgData.split(",")[1];
+    ws.send(base64);
+}, 500); // envía frame cada 0.5 segundos
+</script>
+
+</body>
+</html>

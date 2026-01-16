@@ -46,12 +46,12 @@ button {
 
 <body>
 
-<h2>📷 NAVIGUIDE AI — Cámara en tiempo real</h2>
+<h2>NAVIGUIDE AI — Cámara en tiempo real</h2>
 
 <video id="video" autoplay playsinline></video>
 <br>
 
-<button id="flipBtn">🔄 Cambiar cámara</button>
+<button id="flipBtn">Cambiar cámara</button>
 
 <h3>IA dice:</h3>
 <div id="output">Esperando detecciones...</div>
@@ -76,12 +76,10 @@ async function startCamera() {
 // Inicia cámara
 startCamera();
 
-// ⚠️⚠️⚠️ CAMBIA SOLO ESTA LÍNEA POR TU NGROK ⚠️⚠️⚠️
+// CONEXIÓN CORRECTA CON TU NGROK (YA LISTA)
 const ws = new WebSocket(
   "wss://zaida-distinguishing-unhistorically.ngrok-free.dev/stream"
 );
-// Ejemplo:
-// const ws = new WebSocket("wss://zaida-distinguishing-unhistorically.ngrok-free.dev/stream");
 
 ws.onopen = () => {
     console.log("Conectado al servidor IA");
